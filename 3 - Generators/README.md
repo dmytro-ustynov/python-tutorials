@@ -125,18 +125,17 @@ ustynov_access_logs/
 ### **Сценарій 1: Наївний підхід (ПОГАНИЙ)**
 ```python
 # ❌ НЕБЕЗПЕЧНО! Може зламати систему
-def analyze_all_files_bad():
-    all_data = []
-    
-    # Завантажуємо ВСІ файли в пам'ять одночасно
-    for i in range(1, 11):
-        with open(f'access_log_{i}.log', 'r') as f:
-            all_data.extend(f.readlines())  # ~ 500 000 рядків в RAM!
-    
-    # Тепер аналізуємо
-    for line in all_data:
-        # обробка...
-        pass
+all_data = []
+
+# Завантажуємо ВСІ файли в пам'ять одночасно
+for i in range(10):
+    with open(f'access_log_{i}.log', 'r') as f:
+        all_data.extend(f.readlines())  # ~ 500 000 рядків в RAM!
+
+# Тепер аналізуємо список з 486тис елементів
+for line in all_data:
+    # обробка рядка
+    pass
 ```
 
 **Проблеми:**
@@ -148,17 +147,18 @@ def analyze_all_files_bad():
 ### **Сценарій 2: Розумний підхід (ХОРОШИЙ)**
 ```python
 # ✅ ЕФЕКТИВНО! Використовуємо генератори
-def analyze_all_files_good():
-    def log_generator():
-        for i in range(10):
-            with open(f'access_log_{i}.log', 'r') as f:
-                for line in f:
-                    yield line.strip()  # По одному рядку!
-    
-    # Аналізуємо по одному рядку
-    for line in log_generator():
-        # обробка одного рядку
-        pass
+
+# Спочатку створюємо генераторну функцію
+def log_generator():
+    for i in range(10):
+        with open(f'access_log_{i}.log', 'r') as f:
+            for line in f:
+                yield line.strip()  # По одному рядку!
+
+# Аналізуємо по одному рядку за допомогою створеного генератора
+for line in log_generator():
+    # пеовертає один рядок з файла не завантажуючи всі файли в пам'ять
+    pass
 ```
 
 **Переваги:**
