@@ -15,6 +15,10 @@ Basic file operations in Python - read [here](2%20-%20File%20operations/README.m
     
 Read instructions [here](3%20-%20Generators/README.md)
 
+## 4. OOP Fundamentals in Python
+
+One of the UML diagram examples - for the  Security System Monitoring [here](4%20-%20OOP%20fundamentals/Module3_UML_Relationships.md)
+
 ## Different Python tasks
 
 Read different tasks [here](Tasks/README.md)
