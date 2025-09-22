@@ -804,3 +804,314 @@ class SimpleLogAnalyzer:
    - Метод `export_to_csv()` - експорт у CSV
    - Класметод `from_json()` - створення з JSON
    - Метод `correlate_with(other_alert)` - пошук зв'язків між сповіщеннями
+
+
+---
+
+## 📚 Додаткові матеріали для самостійного вивчення
+
+*Ці техніки виходять за рамки базового курсу, але корисні для розуміння повних можливостей Python*
+
+### 🔒 1. Слоти (__slots__) - Обмеження атрибутів класу
+
+```python
+class RestrictedSecurityEvent:
+    """Клас з обмеженими атрибутами через __slots__"""
+    # Дозволені атрибути - тільки ці!
+    __slots__ = ['_event_id', '_timestamp', '_severity', '_source_ip', '_processed']
+    
+    def __init__(self, event_id, severity, source_ip):
+        self._event_id = event_id
+        self._timestamp = datetime.now()
+        self._severity = severity
+        self._source_ip = source_ip
+        self._processed = False
+    
+    @property
+    def event_id(self):
+        return self._event_id
+    
+    @property
+    def severity(self):
+        return self._severity
+    
+    @severity.setter
+    def severity(self, value):
+        if value not in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']:
+            raise ValueError(f"Invalid severity: {value}")
+        self._severity = value
+
+# Демонстрація slots
+event = RestrictedSecurityEvent("EVT-001", "HIGH", "192.168.1.100")
+print(f"Event: {event.event_id}")
+
+# ✅ Дозволені операції
+event.severity = "CRITICAL"  # Працює
+print(f"Updated severity: {event.severity}")
+
+# ❌ Заборонені операції
+try:
+    event.new_attribute = "test"  # AttributeError!
+except AttributeError as e:
+    print(f"Slots restriction: {e}")
+
+# 💡 Переваги slots:
+# - Економія пам'яті (особливо для багатьох об'єктів)
+# - Швидший доступ до атрибутів
+# - Запобігання створенню нових атрибутів випадково
+
+print(f"Memory usage comparison:")
+print(f"  Without slots: object has __dict__ (~280 bytes)")
+print(f"  With slots: fixed attributes (~48 bytes)")
+```
+
+### ❄️ 2. Frozen Dataclasses - Незмінні об'єкти
+
+```python
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import List
+
+@dataclass(frozen=True)  # Незмінний після створення!
+class ImmutableSecurityLog:
+    """Незмінний лог подій безпеки"""
+    log_id: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    source_ip: str = "unknown"
+    events: List[str] = field(default_factory=list)
+    
+    def __post_init__(self):
+        """Валідація при створенні"""
+        if not self.log_id.startswith("LOG-"):
+            raise ValueError("Log ID must start with 'LOG-'")
+        
+        # Для frozen класів використовуємо object.__setattr__
+        if len(self.events) == 0:
+            object.__setattr__(self, 'events', ["Log initialized"])
+
+# Демонстрація frozen dataclass
+log = ImmutableSecurityLog("LOG-001", source_ip="192.168.1.1")
+print(f"Log created: {log.log_id} at {log.timestamp}")
+print(f"Initial events: {log.events}")
+
+# ❌ Спроба зміни викличе помилку
+try:
+    log.source_ip = "10.0.0.1"  # FrozenInstanceError!
+except Exception as e:
+    print(f"Frozen restriction: {type(e).__name__}: {e}")
+
+try:
+    log.events.append("New event")  # Це працює! List сам не frozen
+    print(f"Events after append: {log.events}")
+except Exception as e:
+    print(f"Error: {e}")
+
+# 💡 Коли використовувати frozen:
+# - Конфігураційні об'єкти
+# - Результати, які не повинні змінюватись
+# - Об'єкти для передачі між потоками
+# - Ключі словників (якщо всі поля hashable)
+```
+
+### 🚀 3. Бібліотека attrs - Потужні незмінні класи
+
+```python
+# pip install attrs
+try:
+    import attr
+    from attr import validators
+
+    @attr.s(frozen=True, slots=True)  # Комбінація frozen + slots
+    class PowerfulSecurityAlert:
+        """Потужний клас сповіщення з attrs"""
+        
+        # Атрибути з валідаторами та конвертерами
+        alert_id: str = attr.ib(validator=validators.matches_re(r'^ALR-\d{6}$'))
+        severity: str = attr.ib(validator=validators.in_(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']))
+        source_ip: str = attr.ib(validator=validators.matches_re(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$'))
+        timestamp: datetime = attr.ib(factory=datetime.now)
+        
+        # Автоматичні конвертери
+        priority: int = attr.ib(converter=int, validator=validators.instance_of(int))
+        
+        # Приватні атрибути (не показуються в repr)
+        _hash_cache: str = attr.ib(init=False, repr=False, default=None)
+        
+        def __attrs_post_init__(self):
+            """Пост-ініціалізація для frozen об'єктів"""
+            import hashlib
+            data = f"{self.alert_id}{self.source_ip}{self.severity}"
+            # Для frozen класів використовуємо object.__setattr__
+            object.__setattr__(self, '_hash_cache', hashlib.md5(data.encode()).hexdigest())
+        
+        @classmethod
+        def from_log_entry(cls, log_entry):
+            """Альтернативний конструктор"""
+            parts = log_entry.split('|')
+            return cls(
+                alert_id=parts[0],
+                severity=parts[1], 
+                source_ip=parts[2],
+                priority=parts[3]
+            )
+        
+        def get_hash(self):
+            """Отримання кешованого хешу"""
+            return self._hash_cache
+
+    # Демонстрація attrs
+    alert = PowerfulSecurityAlert(
+        alert_id="ALR-123456",
+        severity="HIGH", 
+        source_ip="192.168.1.100",
+        priority="85"  # Автоматично конвертується в int
+    )
+    
+    print(f"Alert created: {alert}")
+    print(f"Hash: {alert.get_hash()}")
+    print(f"Priority type: {type(alert.priority)} = {alert.priority}")
+    
+    # Створення з альтернативного конструктора
+    log_alert = PowerfulSecurityAlert.from_log_entry("ALR-654321|CRITICAL|10.0.0.5|95")
+    print(f"From log: {log_alert}")
+    
+    # ❌ Всі спроби зміни заблоковані
+    try:
+        alert.severity = "LOW"  # FrozenInstanceError
+    except Exception as e:
+        print(f"Attrs frozen: {type(e).__name__}")
+    
+    try:
+        alert.new_attr = "test"  # AttributeError (slots)
+    except AttributeError as e:
+        print(f"Attrs slots: {e}")
+    
+    # 💡 Переваги attrs:
+    # - Автоматична генерація __init__, __repr__, __eq__
+    # - Потужні валідатори та конвертери
+    # - Комбінація frozen + slots
+    # - Кращий контроль над атрибутами
+
+except ImportError:
+    print("attrs library not installed. Run: pip install attrs")
+    
+    # Альтернатива без attrs - ручна реалізація
+    class ManualImmutableAlert:
+        """Ручна реалізація незмінного класу"""
+        __slots__ = ['_alert_id', '_severity', '_timestamp', '_frozen']
+        
+        def __init__(self, alert_id, severity):
+            self._alert_id = alert_id
+            self._severity = severity
+            self._timestamp = datetime.now()
+            self._frozen = True
+        
+        def __setattr__(self, name, value):
+            if hasattr(self, '_frozen') and self._frozen:
+                raise AttributeError(f"Cannot modify frozen object")
+            super().__setattr__(name, value)
+        
+        @property
+        def alert_id(self):
+            return self._alert_id
+        
+        @property 
+        def severity(self):
+            return self._severity
+    
+    # Тест ручної реалізації
+    manual_alert = ManualImmutableAlert("ALR-999999", "HIGH")
+    print(f"Manual immutable: {manual_alert.alert_id}")
+    
+    try:
+        manual_alert._severity = "LOW"  # AttributeError
+    except AttributeError as e:
+        print(f"Manual frozen: {e}")
+```
+
+### 🎯 Порівняння підходів
+
+```python
+import sys
+from datetime import datetime
+
+# 1. Звичайний клас
+class RegularAlert:
+    def __init__(self, alert_id, severity):
+        self.alert_id = alert_id
+        self.severity = severity
+        self.timestamp = datetime.now()
+
+# 2. Клас зі slots
+class SlottedAlert:
+    __slots__ = ['alert_id', 'severity', 'timestamp']
+    
+    def __init__(self, alert_id, severity):
+        self.alert_id = alert_id
+        self.severity = severity
+        self.timestamp = datetime.now()
+
+# 3. Frozen dataclass
+@dataclass(frozen=True)
+class FrozenAlert:
+    alert_id: str
+    severity: str
+    timestamp: datetime = field(default_factory=datetime.now)
+
+# Порівняння розміру в пам'яті
+regular = RegularAlert("ALR-001", "HIGH")
+slotted = SlottedAlert("ALR-002", "HIGH") 
+frozen = FrozenAlert("ALR-003", "HIGH")
+
+print("=== ПОРІВНЯННЯ ПІДХОДІВ ===")
+print(f"Regular class size: ~{sys.getsizeof(regular.__dict__)} bytes (має __dict__)")
+print(f"Slotted class size: ~{sys.getsizeof(slotted)} bytes (без __dict__)")
+print(f"Frozen dataclass size: ~{sys.getsizeof(frozen.__dict__)} bytes")
+
+print("\n=== МОЖЛИВОСТІ МОДИФІКАЦІЇ ===")
+# Модифікація regular
+regular.severity = "LOW"
+regular.new_attr = "allowed"
+print(f"Regular: можна змінювати та додавати атрибути ✅")
+
+# Модифікація slotted
+slotted.severity = "LOW"
+try:
+    slotted.new_attr = "denied"
+except AttributeError:
+    print(f"Slotted: можна змінювати, але не можна додавати нові атрибути ⚠️")
+
+# Модифікація frozen  
+try:
+    frozen.severity = "LOW"
+except:
+    print(f"Frozen: не можна змінювати атрибути ❌")
+
+print("\n=== КОЛИ ВИКОРИСТОВУВАТИ ===")
+print("🏃 Regular classes: загальне використання, гнучкість")
+print("💾 __slots__: економія пам'яті, багато об'єктів") 
+print("🔒 frozen: незмінні дані, безпека, багатопотоковість")
+print("🚀 attrs: максимальний контроль, валідація, продуктивність")
+```
+
+### 📖 Підсумок додаткових технік
+
+**Для кібербезпеки ці підходи корисні коли:**
+
+1. **__slots__**: 
+   - Обробка великих об'ємів мережевого трафіку
+   - Зберігання мільйонів записів логу в пам'яті
+   - Запобігання випадковому створенню атрибутів
+
+2. **Frozen objects**:
+   - Конфігураційні дані безпеки
+   - Незмінні правила файрвола  
+   - Результати аналізу, які не повинні змінюватись
+   - Багатопоточна обробка даних
+
+3. **attrs library**:
+   - Складні моделі даних з валідацією
+   - API для системи безпеки
+   - Високопродуктивні додатки
+
+**Пам'ятайте**: це додаткові інструменти. Для більшості завдань достатньо звичайних класів з `@property` та правильною інкапсуляцією! 🎯
