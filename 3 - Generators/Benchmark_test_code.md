@@ -122,9 +122,18 @@ def get_ip_from_log_line(line):
 ## Отримання дати з рядка логу
 
 ```python
-def get_date_from_log_line(line):
+import datetime
+
+def get_datetime_from_log_line(line):
     # Знаючи формат рядка логу, можна знайти дату і час між квадратними дужками
-    # implement your logic here
+    parts = line.split()
+    if len(parts) > 8:
+        date_str = parts[3][1:]
+        try:
+            date = datetime.strptime(date_str, '%d/%b/%Y:%H:%M:%S')
+            return date
+        except ValueError:
+            return None
     return None
 ```
 
@@ -133,7 +142,9 @@ def get_date_from_log_line(line):
 ```python
 def get_url_from_log_line(line):
     # Знаючи формат рядка логу, можна знайти URL між лапками після методу запиту (GET, POST і т.д.)
-    # implement your logic here
+    parts = line.split()
+    if len(parts) > 8:
+        return parts[6]
     return None
 ```
 
@@ -217,15 +228,14 @@ IP_RANGES = {
 }
 
 
-def get_country_by_ip(address):
-    # Спрощена версія для навчання
-    russian_prefixes = ['185.220.', '77.88.', '5.255.' ...]
-    chinese_prefixes = ['117.50.', '223.5.', '39.156.' ....]
-    
-    for prefix in russian_prefixes:
-        if ip.startswith(prefix):
-            return 'Russia'
-    # ... і так далі для інших країн
+def get_country_by_ip(address: str) -> str:
+    # ітеруємо по словарю IP_RANGES
+    for country, ip_ranges in IP_RANGES.items(): 
+        for ip in ip_ranges:
+            # перевіряємо що рядок IP починається з одного з префіксів
+            if address.startswith(ip):
+                return country
+    return 'unknown'
 ```
 
 ##  Визначення підозрілих запитів
