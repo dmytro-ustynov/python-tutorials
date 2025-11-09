@@ -87,7 +87,7 @@ ids = {f"{random.choices("ABCDEF", k=2)} {random.randint(1000, 9999)}"}
 <generator object <genexpr> at 0x106141220>
 ```
 
- Що таке генератори дивись приклад [тут](../3%20-%20Generators/README.md).
+ Що таке генератори дивись приклад [тут](../03%20-%20Generators/README.md).
  
 
 # Ключові слова Python
