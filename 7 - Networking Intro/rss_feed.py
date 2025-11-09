@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup  # pip install beautifulsoup4
 
 # URL = 'https://www.pravda.com.ua/rss/view_news/'
+# URL = 'https://krebsonsecurity.com/feed/'
 URL = 'https://feeds.feedburner.com/TheHackersNews'
 
 response = requests.get(URL)
