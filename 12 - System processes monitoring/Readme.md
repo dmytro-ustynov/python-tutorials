@@ -137,6 +137,8 @@ print(f"  Пам'ять: {process.memory_info().rss / (1024**2):.2f} MB")
 print(f"  Потоків: {process.num_threads()}")
 ```
 
+
+Самостійно : порахувати загальну кількість процесів та вивести процес з найбільшим використанням памʼяті.
 ---
 
 ### **Слайд 5. Пошук та фільтрація процесів**
@@ -160,16 +162,17 @@ def get_top_memory_processes(n=5):
     processes = []
     for proc in psutil.process_iter(['pid', 'name', 'memory_percent']):
         try:
-            processes.append({
-                'pid': proc.info['pid'],
-                'name': proc.info['name'],
-                'memory': proc.info['memory_percent']
-            })
+            if proc.info['memory_percent'] is not None:
+                processes.append({
+                    'pid': proc.info['pid'],
+                    'name': proc.info['name'],
+                    'memory': proc.info['memory_percent']
+                })
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
 
     # Сортування за пам'яттю
-    processes.sort(key=lambda x: x['memory'], reverse=True)
+    processes.sort(key=lambda x:  x['memory'], reverse=True)
     return processes[:n]
 
 # Використання
