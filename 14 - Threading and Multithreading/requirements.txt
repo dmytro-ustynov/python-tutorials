@@ -1,0 +1,30 @@
+# Requirements for Lesson 5.6: Threading and Multithreading
+
+# Core dependencies
+requests>=2.31.0          # For HTTP requests in brute force examples
+urllib3>=2.0.0            # HTTP client (dependency of requests)
+
+# Optional but recommended
+tabulate>=0.9.0           # For pretty tables in performance comparison
+matplotlib>=3.7.0         # For visualization of performance results
+colorama>=0.4.6           # For colored terminal output
+
+# Development and testing
+pytest>=7.4.0             # For unit testing
+pytest-timeout>=2.2.0     # For timeout handling in tests
+
+# Note: All examples work with Python standard library modules:
+# - threading (built-in)
+# - concurrent.futures (built-in)
+# - queue (built-in)
+# - socket (built-in)
+# - time (built-in)
+
+# Installation:
+# pip install -r requirements.txt
+
+# Minimal installation (only required packages):
+# pip install requests
+
+# Full installation (all features):
+# pip install requests tabulate matplotlib colorama
