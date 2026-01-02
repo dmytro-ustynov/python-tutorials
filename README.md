@@ -1,6 +1,10 @@
 # python-tutorials
 Python course with comprehensive tutorial materials, code examples and illustrations
 
+📚 **[Повний план курсу "Крос-платформне програмування"](Python.md)** - детальний змістовий план з розподілом годин, темами занять та навичками
+
+---
+
 ## 1. Python types and structures
 
 Read about Basic types and structures [here](01%20-%20Types%20and%20Structures/Types_And_Structures.md)
@@ -46,6 +50,24 @@ Working with file paths and file search - read [here](10%20-%20Working%20with%20
 ## 11. Automating File Operations
 
 Automating file operations - timestamping, rotation, archiving - read [here](11%20-%20Automating%20file%20operations/README.md)
+
+## 12. System Processes Monitoring
+
+System processes monitoring with psutil - read [here](12%20-%20System%20processes%20monitoring/Readme.md)
+
+## 13. Cryptography and Encryption
+
+Cryptography fundamentals, hashing, symmetric and asymmetric encryption - read [here](13%20-%20Cryptography%20and%20Encryption/README.md)
+
+Learn about RSA algorithm in detail [here](13%20-%20Cryptography%20and%20Encryption/RSA_EDUCATION_README.md)
+
+## 14. Threading and Multithreading
+
+Master multithreading in Python for cybersecurity tools:
+- 📚 [Theoretical foundation](14%20-%20Threading%20and%20Multithreading/Part_1_Theory.md) - deep dive into threads, processes, and GIL
+- 💻 [Code examples](14%20-%20Threading%20and%20Multithreading/Code_Examples.md) - practical threading examples
+- 🔒 [GIL deep dive](14%20-%20Threading%20and%20Multithreading/GIL%20in%20Python.md) - comprehensive GIL analysis
+- 🛠️ [Practical tasks](14%20-%20Threading%20and%20Multithreading/README.md) - building port scanners and brute-force tools
 
 ## Different Python tasks
 
